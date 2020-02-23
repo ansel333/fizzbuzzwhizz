@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fizz buzz whizz</title>
+  <!-- vue.js -->
+  <script src="https://unpkg.com/vue@2.6.11/dist/vue.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <!-- element ui -->
+  <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+</head>
+<body>
+  <div id="app">
+      <el-form :rules="rules" label-position="left" label-width="180px" :model="formValue" ref="formValue">
+        <el-form-item label="People count" prop="count">
+          <el-input v-model="formValue.count"></el-input>
+        </el-form-item>
+        <el-form-item label="Fizz" prop="fizz">
+          <el-input v-model="formValue.fizz"></el-input>
+        </el-form-item>
+        <el-form-item label="Buzz" prop="buzz">
+          <el-input v-model="formValue.buzz"></el-input>
+        </el-form-item>
+        <el-form-item label="Whizz" prop="whizz">
+          <el-input v-model="formValue.whizz"></el-input>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="onSubmit">Rock & Roll !</el-button>
+          <el-button type="primary" plain @click="download">Download</el-button>
+          <el-button @click="resetInput">Reset</el-button>
+        </el-form-item>
+        <el-form-item>
+          <el-input
+              type="textarea"
+              :rows="rows"
+              v-model="formValue.theSong">s
+          </el-input>
+        </el-form-item>
+      </el-form>
+  </div>
+
+
+  <script type="application/javascript">
+    var responseG = null;
+    var app = new Vue({
+      el: "#app",
+      data: {
+        rows: 6,
+        formValue: {
+          count: 35,
+          fizz: 3,
+          buzz: 4,
+          whizz: 5,
+          theSong: ""
+        },
+        rules: {
+          fizz: [{required: true, message: 'Must input !', trigger: 'blur'}],
+          buzz: [{required: true, message: 'Must input !', trigger: 'blur'}],
+          whizz: [{required: true, message: 'Must input !', trigger: 'blur'}],
+          count: [{required: true, message: 'Must input !', trigger: 'blur'}]
+        }
+      },
+      methods:{
+        download() {
+          let _this = this;
+          this.$refs['formValue'].validate((valid) => {
+            if (valid) {
+              axios({
+                url: 'download',
+                method: 'POST',
+                responseType: 'blob',
+                data: {
+                  count: _this.formValue.count,
+                  fizz: _this.formValue.fizz,
+                  buzz: _this.formValue.buzz,
+                  whizz: _this.formValue.whizz
+                }
+              }).then((response) => {
+                let url = window.URL.createObjectURL(new Blob([response.data]));
+                let link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', 'fizzbusswhizz.txt');
+                document.body.appendChild(link);
+                _this.$message({message: "File generated success !", type: "success"});
+                link.click();
+              });
+            } else {
+              console.log('error submit!!');
+              return false;
+            }
+          });
+        },
+        onSubmit() {
+          let _this = this;
+          this.$refs['formValue'].validate((valid) => {
+            if (valid) {
+              axios.post("genMessage", {
+                count: _this.formValue.count,
+                fizz: _this.formValue.fizz,
+                buzz: _this.formValue.buzz,
+                whizz: _this.formValue.whizz,
+              }).then(function (response) {
+                if (response.data.length > 0) {
+                  _this.formValue.theSong = response.data;
+                  _this.$message({message: "Rock success !", type: "success"});
+                }
+              }).catch(function (error) {
+                _this.$message("Some Error Happened");
+              });
+            } else {
+              console.log('error submit!!');
+              return false;
+            }
+          });
+
+        },
+        resetInput() {
+          this.formValue.count = 35;
+          this.formValue.fizz = 3;
+          this.formValue.buzz = 4;
+          this.formValue.whizz = 5;
+          this.rows = 6;
+          this.formValue.theSong = "";
+        }
+      }
+    })
+  </script>
+  <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+</body>
+</html>
